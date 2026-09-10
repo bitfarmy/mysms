@@ -26,6 +26,7 @@ class ConversazioneActivity : Activity() {
         const val EXTRA_NUMERO = "numero"
     }
 
+    private lateinit var tema: Tema
     private var threadId: Long = -1
     private lateinit var numero: String
     private lateinit var elencoView: ListView
@@ -40,6 +41,7 @@ class ConversazioneActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        tema = Temi.perId(Preferenze(this).tema)
         threadId = intent.getLongExtra(EXTRA_THREAD_ID, -1)
         numero = intent.getStringExtra(EXTRA_NUMERO) ?: ""
         title = PhoneNumberUtils.formatNumber(numero, Locale.getDefault().country) ?: numero
@@ -47,6 +49,7 @@ class ConversazioneActivity : Activity() {
 
         val radice = LinearLayout(this)
         radice.orientation = LinearLayout.VERTICAL
+        radice.setBackgroundColor(tema.sfondo)
 
         elencoView = ListView(this)
         elencoView.transcriptMode = ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL
@@ -58,13 +61,17 @@ class ConversazioneActivity : Activity() {
         val rigaInvio = LinearLayout(this)
         rigaInvio.orientation = LinearLayout.HORIZONTAL
         rigaInvio.setPadding(dp(8), dp(8), dp(8), dp(8))
+        rigaInvio.setBackgroundColor(tema.superficie)
 
         campoTesto = EditText(this)
         campoTesto.hint = "Scrivi un messaggio"
+        campoTesto.setTextColor(tema.testo)
+        campoTesto.setHintTextColor(tema.testoSecondario)
         rigaInvio.addView(campoTesto, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
 
         val invia = TextView(this)
         invia.text = "Invia"
+        invia.setTextColor(tema.accento)
         invia.gravity = Gravity.CENTER
         invia.setPadding(dp(16), 0, dp(16), 0)
         invia.setOnClickListener { inviaMessaggio() }
@@ -106,6 +113,7 @@ class ConversazioneActivity : Activity() {
     }
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
+    private fun dp(v: Float) = (v * resources.displayMetrics.density)
 
     // ---------- Adapter ----------
 
@@ -122,15 +130,18 @@ class ConversazioneActivity : Activity() {
             val bolla = LinearLayout(this@ConversazioneActivity)
             bolla.orientation = LinearLayout.VERTICAL
             bolla.setPadding(dp(14), dp(8), dp(14), dp(8))
-            val sfondo = GradientDrawable()
-            sfondo.cornerRadius = dp(14).toFloat()
-            sfondo.setColor(if (m.inviatoDaMe) Color.parseColor("#1A73E8") else Color.parseColor("#E4E6EB"))
-            bolla.background = sfondo
 
+            val sfondoBolla = GradientDrawable()
+            sfondoBolla.cornerRadius = dp(tema.angoloBolla)
+            sfondoBolla.setColor(if (m.inviatoDaMe) tema.accento else tema.superficie)
+            if (tema.bordo != 0) sfondoBolla.setStroke(dp(1f).toInt(), tema.bordo)
+            bolla.background = sfondoBolla
+
+            val testoColore = if (m.inviatoDaMe) tema.testoSuAccento else tema.testo
             val testo = TextView(this@ConversazioneActivity)
             testo.text = m.corpo
             testo.textSize = 15f
-            testo.setTextColor(if (m.inviatoDaMe) Color.WHITE else Color.BLACK)
+            testo.setTextColor(testoColore)
             bolla.addView(testo)
 
             if (m.inviatoDaMe && m.stato != StatoMessaggio.INVIATO) {
