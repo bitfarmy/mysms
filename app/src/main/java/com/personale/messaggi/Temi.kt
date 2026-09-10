@@ -17,6 +17,8 @@ data class Tema(
     val bannerTesto: Int,
     /** Raggio degli angoli delle bolle, in dp. 0 = squadrato, fedele agli stili vintage. */
     val angoloBolla: Float,
+    /** Colore della riga divisoria tra una conversazione e l'altra. */
+    val divisore: Int,
 )
 
 /** Aggiungi un tema alla lista: comparirà da solo nel menu "Tema". */
@@ -28,7 +30,7 @@ object Temi {
             testo = 0xFF1F1F1F.toInt(), testoSecondario = 0xFF6B6F75.toInt(),
             accento = 0xFF1A73E8.toInt(), testoSuAccento = 0xFFFFFFFF.toInt(),
             bannerSfondo = 0xFFE8F0FE.toInt(), bannerTesto = 0xFF1A73E8.toInt(),
-            angoloBolla = 14f,
+            angoloBolla = 14f, divisore = 0xFFDADCE0.toInt(),
         ),
         Tema(
             "scuro", "Scuro",
@@ -36,7 +38,7 @@ object Temi {
             testo = 0xFFF2F2F2.toInt(), testoSecondario = 0xFF9A9AA3.toInt(),
             accento = 0xFF4C8DFF.toInt(), testoSuAccento = 0xFF0B1220.toInt(),
             bannerSfondo = 0xFF2A2210.toInt(), bannerTesto = 0xFFFFD54F.toInt(),
-            angoloBolla = 14f,
+            angoloBolla = 14f, divisore = 0xFF3A3A3E.toInt(),
         ),
         // Teal del desktop, grigio "Silver" delle finestre, blu navy della selezione, giallo degli avvisi.
         Tema(
@@ -45,7 +47,7 @@ object Temi {
             testo = 0xFF000000.toInt(), testoSecondario = 0xFF404040.toInt(),
             accento = 0xFF000080.toInt(), testoSuAccento = 0xFFFFFFFF.toInt(),
             bannerSfondo = 0xFFFFFF00.toInt(), bannerTesto = 0xFF000000.toInt(),
-            angoloBolla = 0f,
+            angoloBolla = 0f, divisore = 0xFF808080.toInt(),
         ),
         // Grigio "Platinum" e blu di selezione di System 7 / Mac OS 8-9.
         Tema(
@@ -54,7 +56,7 @@ object Temi {
             testo = 0xFF000000.toInt(), testoSecondario = 0xFF666666.toInt(),
             accento = 0xFF3366CC.toInt(), testoSuAccento = 0xFFFFFFFF.toInt(),
             bannerSfondo = 0xFFFFFFCC.toInt(), bannerTesto = 0xFF000000.toInt(),
-            angoloBolla = 0f,
+            angoloBolla = 0f, divisore = 0xFF999999.toInt(),
         ),
     )
 
