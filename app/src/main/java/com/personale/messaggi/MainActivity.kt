@@ -6,6 +6,8 @@ import android.app.role.RoleManager
 import android.content.Intent
 import android.database.Cursor
 import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
@@ -59,22 +61,37 @@ class MainActivity : Activity() {
         bannerPredefinita.setOnClickListener { chiediDiDiventarePredefinita() }
         radice.addView(bannerPredefinita, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
 
+        val separatore = View(this)
+        separatore.setBackgroundColor(tema.divisore)
+        radice.addView(separatore, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1)))
+
+        // La lista vive dentro un "pannello finestra" bordato che si stacca dal desktop sottostante.
         elencoView = ListView(this)
-        elencoView.divider = null
+        elencoView.divider = ColorDrawable(tema.divisore)
+        elencoView.dividerHeight = dp(1)
         adapter = AdapterConversazioni()
         elencoView.adapter = adapter
         elencoView.setOnItemClickListener { _, _, posizione, _ -> apriConversazione(conversazioni[posizione]) }
-        radice.addView(elencoView, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+
+        val pannelloLista = LinearLayout(this)
+        pannelloLista.background = pannelloConBordo(tema.superficie, tema.bordo)
+        pannelloLista.setPadding(dp(2), dp(2), dp(2), dp(2))
+        pannelloLista.addView(elencoView, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT))
+        val parametriPannello = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
+        parametriPannello.setMargins(dp(8), dp(8), dp(8), dp(8))
+        radice.addView(pannelloLista, parametriPannello)
 
         val nuovo = TextView(this)
         nuovo.text = "+  Nuovo messaggio"
         nuovo.textSize = 16f
         nuovo.gravity = Gravity.CENTER
-        nuovo.setPadding(0, dp(16), 0, dp(16))
-        nuovo.setBackgroundColor(tema.superficie)
+        nuovo.setPadding(0, dp(14), 0, dp(14))
+        nuovo.background = pannelloConBordo(tema.superficie, tema.bordo)
         nuovo.setTextColor(tema.accento)
         nuovo.setOnClickListener { nuovoMessaggio() }
-        radice.addView(nuovo, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        val parametriNuovo = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        parametriNuovo.setMargins(dp(8), 0, dp(8), dp(8))
+        radice.addView(nuovo, parametriNuovo)
 
         setContentView(radice)
 
@@ -238,6 +255,15 @@ class MainActivity : Activity() {
         return null
     }
 
+    /** Riempimento pieno, con bordo attorno solo se il tema lo prevede (i temi vintage). */
+    private fun pannelloConBordo(riempimento: Int, bordoColore: Int): GradientDrawable {
+        val d = GradientDrawable()
+        d.setColor(riempimento)
+        d.cornerRadius = 0f
+        if (bordoColore != 0) d.setStroke(dp(2), bordoColore)
+        return d
+    }
+
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
     // ---------- Adapter ----------
@@ -251,8 +277,9 @@ class MainActivity : Activity() {
             val c = conversazioni[posizione]
             val riga = LinearLayout(this@MainActivity)
             riga.orientation = LinearLayout.VERTICAL
-            riga.setPadding(dp(20), dp(12), dp(20), dp(12))
-            riga.setBackgroundColor(tema.sfondo)
+            riga.setPadding(dp(16), dp(12), dp(16), dp(12))
+            // Sfondo "finestra", diverso dal desktop: è questo a dare struttura alla lista.
+            riga.setBackgroundColor(tema.superficie)
 
             val alto = LinearLayout(this@MainActivity)
             alto.orientation = LinearLayout.HORIZONTAL
