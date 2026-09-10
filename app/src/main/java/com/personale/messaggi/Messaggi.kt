@@ -12,8 +12,6 @@ object Messaggi {
             Telephony.Sms.BODY,
             Telephony.Sms.DATE,
             Telephony.Sms.TYPE,
-            Telephony.Sms.STATUS,
-            Telephony.Sms.ERROR_CODE,
         )
         val lista = ArrayList<Messaggio>()
         context.contentResolver.query(
@@ -25,15 +23,14 @@ object Messaggi {
             val iBody = c.getColumnIndexOrThrow(Telephony.Sms.BODY)
             val iDate = c.getColumnIndexOrThrow(Telephony.Sms.DATE)
             val iType = c.getColumnIndexOrThrow(Telephony.Sms.TYPE)
-            val iErrore = c.getColumnIndexOrThrow(Telephony.Sms.ERROR_CODE)
 
             while (c.moveToNext()) {
                 val tipo = c.getInt(iType)
                 val inviato = tipo != Telephony.Sms.MESSAGE_TYPE_INBOX
-                val stato = when {
-                    tipo == Telephony.Sms.MESSAGE_TYPE_INBOX -> StatoMessaggio.RICEVUTO
-                    tipo == Telephony.Sms.MESSAGE_TYPE_OUTBOX || tipo == Telephony.Sms.MESSAGE_TYPE_QUEUED -> StatoMessaggio.IN_CORSO
-                    tipo == Telephony.Sms.MESSAGE_TYPE_FAILED || c.getInt(iErrore) != 0 -> StatoMessaggio.FALLITO
+                val stato = when (tipo) {
+                    Telephony.Sms.MESSAGE_TYPE_INBOX -> StatoMessaggio.RICEVUTO
+                    Telephony.Sms.MESSAGE_TYPE_OUTBOX, Telephony.Sms.MESSAGE_TYPE_QUEUED -> StatoMessaggio.IN_CORSO
+                    Telephony.Sms.MESSAGE_TYPE_FAILED -> StatoMessaggio.FALLITO
                     else -> StatoMessaggio.INVIATO
                 }
                 lista.add(
