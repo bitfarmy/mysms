@@ -4,9 +4,11 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.app.role.RoleManager
 import android.content.Intent
+import android.database.Cursor
 import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.provider.Telephony
 import android.telephony.PhoneNumberUtils
 import android.text.InputType
@@ -30,6 +32,7 @@ class MainActivity : Activity() {
 
     private companion object {
         const val RICHIESTA_RUOLO_SMS = 900
+        const val RICHIESTA_CONTATTO = 901
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,7 +59,7 @@ class MainActivity : Activity() {
         nuovo.textSize = 16f
         nuovo.gravity = Gravity.CENTER
         nuovo.setPadding(0, dp(16), 0, dp(16))
-        nuovo.setOnClickListener { chiediNumeroPerNuovoMessaggio() }
+        nuovo.setOnClickListener { nuovoMessaggio() }
         radice.addView(nuovo, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
 
         setContentView(radice)
@@ -96,6 +99,25 @@ class MainActivity : Activity() {
         startActivity(apri)
     }
 
+    private fun nuovoMessaggio() {
+        AlertDialog.Builder(this)
+            .setTitle("Nuovo messaggio")
+            .setItems(arrayOf("Scegli dalla rubrica", "Scrivi un numero")) { _, quale ->
+                if (quale == 0) aprirubrica() else chiediNumeroPerNuovoMessaggio()
+            }
+            .show()
+    }
+
+    private fun aprirubrica() {
+        // Il selettore di sistema: nessun permesso in più richiesto, e mostra già solo i contatti con un numero.
+        val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+        try {
+            startActivityForResult(intent, RICHIESTA_CONTATTO)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Nessuna app rubrica trovata sul telefono.", Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun chiediNumeroPerNuovoMessaggio() {
         val campo = EditText(this)
         campo.hint = "Numero di telefono"
@@ -109,14 +131,16 @@ class MainActivity : Activity() {
             .setView(contenitore)
             .setPositiveButton("Avanti") { _, _ ->
                 val numero = campo.text.toString().trim()
-                if (numero.isNotEmpty()) {
-                    val apri = Intent(this, ConversazioneActivity::class.java)
-                    apri.putExtra(ConversazioneActivity.EXTRA_NUMERO, numero)
-                    startActivity(apri)
-                }
+                if (numero.isNotEmpty()) apriConversazioneConNumero(numero)
             }
             .setNegativeButton("Annulla", null)
             .show()
+    }
+
+    private fun apriConversazioneConNumero(numero: String) {
+        val apri = Intent(this, ConversazioneActivity::class.java)
+        apri.putExtra(ConversazioneActivity.EXTRA_NUMERO, numero)
+        startActivity(apri)
     }
 
     // ---------- App SMS predefinita ----------
@@ -149,6 +173,26 @@ class MainActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == RICHIESTA_RUOLO_SMS) aggiornaBannerPredefinita()
+        if (requestCode == RICHIESTA_CONTATTO && resultCode == RESULT_OK) {
+            data?.data?.let { uri ->
+                val numero = leggiNumeroDaContatto(uri)
+                if (numero != null) apriConversazioneConNumero(numero)
+            }
+        }
+    }
+
+    private fun leggiNumeroDaContatto(uri: android.net.Uri): String? {
+        var cursore: Cursor? = null
+        try {
+            cursore = contentResolver.query(uri, null, null, null, null)
+            if (cursore != null && cursore.moveToFirst()) {
+                val indice = cursore.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                if (indice >= 0) return cursore.getString(indice)
+            }
+        } finally {
+            cursore?.close()
+        }
+        return null
     }
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
