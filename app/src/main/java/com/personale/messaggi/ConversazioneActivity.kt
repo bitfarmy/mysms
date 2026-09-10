@@ -51,12 +51,24 @@ class ConversazioneActivity : Activity() {
         radice.orientation = LinearLayout.VERTICAL
         radice.setBackgroundColor(tema.sfondo)
 
+        // I messaggi vivono in un pannello "finestra" bordato, come nella schermata principale.
         elencoView = ListView(this)
         elencoView.transcriptMode = ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL
         elencoView.divider = null
         adapter = AdapterMessaggi()
         elencoView.adapter = adapter
-        radice.addView(elencoView, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+
+        val pannelloLista = LinearLayout(this)
+        pannelloLista.background = pannelloConBordo(tema.sfondo, tema.bordo)
+        pannelloLista.setPadding(dp(2), dp(2), dp(2), dp(2))
+        pannelloLista.addView(elencoView, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT))
+        val parametriPannello = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
+        parametriPannello.setMargins(dp(8), dp(8), dp(8), dp(8))
+        radice.addView(pannelloLista, parametriPannello)
+
+        val separatore = View(this)
+        separatore.setBackgroundColor(tema.divisore)
+        radice.addView(separatore, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1)))
 
         val rigaInvio = LinearLayout(this)
         rigaInvio.orientation = LinearLayout.HORIZONTAL
@@ -74,8 +86,11 @@ class ConversazioneActivity : Activity() {
         invia.setTextColor(tema.accento)
         invia.gravity = Gravity.CENTER
         invia.setPadding(dp(16), 0, dp(16), 0)
+        invia.background = pannelloConBordo(tema.sfondo, tema.bordo)
         invia.setOnClickListener { inviaMessaggio() }
-        rigaInvio.addView(invia, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT))
+        val parametriInvia = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT)
+        parametriInvia.setMargins(dp(6), 0, 0, 0)
+        rigaInvio.addView(invia, parametriInvia)
 
         radice.addView(rigaInvio, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         setContentView(radice)
@@ -110,6 +125,15 @@ class ConversazioneActivity : Activity() {
         InvioSms.invia(this, numero, testo)
         campoTesto.setText("")
         ricarica()
+    }
+
+    /** Riempimento pieno, con bordo attorno solo se il tema lo prevede (i temi vintage). */
+    private fun pannelloConBordo(riempimento: Int, bordoColore: Int): GradientDrawable {
+        val d = GradientDrawable()
+        d.setColor(riempimento)
+        d.cornerRadius = 0f
+        if (bordoColore != 0) d.setStroke(dp(2), bordoColore)
+        return d
     }
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
