@@ -14,6 +14,8 @@ import android.telephony.PhoneNumberUtils
 import android.text.InputType
 import android.text.format.DateUtils
 import android.view.Gravity
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
@@ -25,6 +27,8 @@ import android.widget.Toast
 
 class MainActivity : Activity() {
 
+    private lateinit var prefs: Preferenze
+    private lateinit var tema: Tema
     private lateinit var elencoView: ListView
     private lateinit var bannerPredefinita: TextView
     private lateinit var adapter: AdapterConversazioni
@@ -33,22 +37,30 @@ class MainActivity : Activity() {
     private companion object {
         const val RICHIESTA_RUOLO_SMS = 900
         const val RICHIESTA_CONTATTO = 901
+        const val VOCE_MENU_TEMA = 1
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         title = getString(R.string.app_name)
 
+        prefs = Preferenze(this)
+        tema = Temi.perId(prefs.tema)
+
         val radice = LinearLayout(this)
         radice.orientation = LinearLayout.VERTICAL
+        radice.setBackgroundColor(tema.sfondo)
 
         bannerPredefinita = TextView(this)
         bannerPredefinita.textSize = 15f
         bannerPredefinita.setPadding(dp(20), dp(14), dp(20), dp(14))
+        bannerPredefinita.setBackgroundColor(tema.bannerSfondo)
+        bannerPredefinita.setTextColor(tema.bannerTesto)
         bannerPredefinita.setOnClickListener { chiediDiDiventarePredefinita() }
         radice.addView(bannerPredefinita, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
 
         elencoView = ListView(this)
+        elencoView.divider = null
         adapter = AdapterConversazioni()
         elencoView.adapter = adapter
         elencoView.setOnItemClickListener { _, _, posizione, _ -> apriConversazione(conversazioni[posizione]) }
@@ -59,6 +71,8 @@ class MainActivity : Activity() {
         nuovo.textSize = 16f
         nuovo.gravity = Gravity.CENTER
         nuovo.setPadding(0, dp(16), 0, dp(16))
+        nuovo.setBackgroundColor(tema.superficie)
+        nuovo.setTextColor(tema.accento)
         nuovo.setOnClickListener { nuovoMessaggio() }
         radice.addView(nuovo, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
 
@@ -82,6 +96,35 @@ class MainActivity : Activity() {
                 Toast.makeText(this, "Senza questi permessi l'app non può leggere o inviare SMS.", Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    // ---------- Menu e temi ----------
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menu.add(0, VOCE_MENU_TEMA, 0, "Tema")
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == VOCE_MENU_TEMA) {
+            mostraSceltaTema()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun mostraSceltaTema() {
+        val nomi = Temi.tutti.map { it.nome }.toTypedArray()
+        val indiceAttuale = Temi.tutti.indexOfFirst { it.id == prefs.tema }.coerceAtLeast(0)
+        AlertDialog.Builder(this)
+            .setTitle("Scegli un tema")
+            .setSingleChoiceItems(nomi, indiceAttuale) { dialog, quale ->
+                prefs.tema = Temi.tutti[quale].id
+                dialog.dismiss()
+                recreate()
+            }
+            .setNegativeButton("Annulla", null)
+            .show()
     }
 
     // ---------- Elenco ----------
@@ -209,6 +252,7 @@ class MainActivity : Activity() {
             val riga = LinearLayout(this@MainActivity)
             riga.orientation = LinearLayout.VERTICAL
             riga.setPadding(dp(20), dp(12), dp(20), dp(12))
+            riga.setBackgroundColor(tema.sfondo)
 
             val alto = LinearLayout(this@MainActivity)
             alto.orientation = LinearLayout.HORIZONTAL
@@ -216,13 +260,14 @@ class MainActivity : Activity() {
             val titolo = TextView(this@MainActivity)
             titolo.text = c.nome ?: formattaNumero(c.numero)
             titolo.textSize = 16f
+            titolo.setTextColor(tema.testo)
             if (c.nonLetta) titolo.setTypeface(titolo.typeface, Typeface.BOLD)
             alto.addView(titolo, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
 
             val data = TextView(this@MainActivity)
             data.text = DateUtils.getRelativeTimeSpanString(c.data, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE)
             data.textSize = 12f
-            data.alpha = 0.6f
+            data.setTextColor(tema.testoSecondario)
             alto.addView(data)
 
             riga.addView(alto)
@@ -230,7 +275,7 @@ class MainActivity : Activity() {
             val anteprima = TextView(this@MainActivity)
             anteprima.text = c.ultimoTesto
             anteprima.textSize = 14f
-            anteprima.alpha = if (c.nonLetta) 1f else 0.6f
+            anteprima.setTextColor(if (c.nonLetta) tema.testo else tema.testoSecondario)
             anteprima.maxLines = 1
             anteprima.ellipsize = android.text.TextUtils.TruncateAt.END
             riga.addView(anteprima)
