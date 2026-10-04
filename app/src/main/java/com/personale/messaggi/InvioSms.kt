@@ -1,6 +1,7 @@
 package com.personale.messaggi
 
 import android.app.PendingIntent
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -14,6 +15,9 @@ object InvioSms {
     const val AZIONE_INVIATO = "com.personale.messaggi.SMS_INVIATO"
     const val EXTRA_URI_MESSAGGIO = "uri_messaggio"
 
+    const val EXTRA_PARTE = "parte"
+    const val EXTRA_PARTI_TOTALI = "parti_totali"
+
     /** Scrive subito il messaggio come "in corso" nel provider, poi lo invia davvero. Ritorna il suo Uri. */
     fun invia(context: Context, numero: String, testo: String): Uri? {
         val valori = ContentValues().apply {
@@ -25,22 +29,39 @@ object InvioSms {
             put(Telephony.Sms.SEEN, 1)
         }
         val uriMessaggio = context.contentResolver.insert(Telephony.Sms.CONTENT_URI, valori) ?: return null
+        spedisci(context, uriMessaggio, numero, testo)
+        return uriMessaggio
+    }
 
+    /** Ritenta un messaggio fallito riusando la stessa riga, senza crearne un duplicato. */
+    fun riprova(context: Context, idMessaggio: Long, numero: String, testo: String) {
+        val uri = ContentUris.withAppendedId(Telephony.Sms.CONTENT_URI, idMessaggio)
+        val valori = ContentValues().apply {
+            put(Telephony.Sms.TYPE, Telephony.Sms.MESSAGE_TYPE_OUTBOX)
+            put(Telephony.Sms.DATE, System.currentTimeMillis())
+        }
+        context.contentResolver.update(uri, valori, null, null)
+        spedisci(context, uri, numero, testo)
+    }
+
+    private fun spedisci(context: Context, uriMessaggio: Uri, numero: String, testo: String) {
         val gestore = gestoreSms(context) ?: run {
             segnaFallito(context, uriMessaggio)
-            return uriMessaggio
+            return
         }
 
         val parti = gestore.divideMessage(testo)
-        val intentInvio = Intent(context, StatoInvioReceiver::class.java).apply {
-            action = AZIONE_INVIATO
-            putExtra(EXTRA_URI_MESSAGGIO, uriMessaggio.toString())
-        }
         val flag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
         val pendingIntents = ArrayList<PendingIntent>()
         parti.forEachIndexed { i, _ ->
+            val intentInvio = Intent(context, StatoInvioReceiver::class.java).apply {
+                action = AZIONE_INVIATO
+                putExtra(EXTRA_URI_MESSAGGIO, uriMessaggio.toString())
+                putExtra(EXTRA_PARTE, i)
+                putExtra(EXTRA_PARTI_TOTALI, parti.size)
+            }
             pendingIntents.add(
-                PendingIntent.getBroadcast(context, (uriMessaggio.toString() + i).hashCode(), intentInvio, PendingIntent.FLAG_UPDATE_CURRENT or flag),
+                PendingIntent.getBroadcast(context, (uriMessaggio.toString() + i + System.nanoTime()).hashCode(), intentInvio, PendingIntent.FLAG_UPDATE_CURRENT or flag),
             )
         }
 
@@ -53,12 +74,14 @@ object InvioSms {
         } catch (e: Exception) {
             segnaFallito(context, uriMessaggio)
         }
-        return uriMessaggio
     }
 
+    /** Passa a "inviato" solo se non è già fallito (una parte fallita rende fallito tutto il messaggio). */
     fun segnaInviato(context: Context, uriMessaggio: Uri) {
         val valori = ContentValues().apply { put(Telephony.Sms.TYPE, Telephony.Sms.MESSAGE_TYPE_SENT) }
-        context.contentResolver.update(uriMessaggio, valori, null, null)
+        context.contentResolver.update(
+            uriMessaggio, valori, "${Telephony.Sms.TYPE} = ?", arrayOf(Telephony.Sms.MESSAGE_TYPE_OUTBOX.toString()),
+        )
     }
 
     fun segnaFallito(context: Context, uriMessaggio: Uri) {

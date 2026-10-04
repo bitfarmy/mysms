@@ -147,8 +147,15 @@ class MainActivity : Activity() {
     // ---------- Elenco ----------
 
     private fun aggiornaElenco() {
-        conversazioni = Conversazioni.elenco(this)
-        adapter.notifyDataSetChanged()
+        Contatti.svuotaCache() // la rubrica può essere cambiata dall'ultima volta
+        Thread {
+            val nuovo = Conversazioni.elenco(this)
+            runOnUiThread {
+                if (isDestroyed) return@runOnUiThread
+                conversazioni = nuovo
+                adapter.notifyDataSetChanged()
+            }
+        }.start()
     }
 
     private fun apriConversazione(c: Conversazione) {
