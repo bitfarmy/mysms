@@ -52,4 +52,4 @@ jobs:
           VERSIONE="${GITHUB_REF_NAME#v}"
           cp app/build/outputs/apk/release/app-release.apk "mysms-${VERSIONE}.apk"
           gh release create "$GITHUB_REF_NAME" "mysms-${VERSIONE}.apk" \
-            --title "I miei SMS $VERSIONE" --notes-file .github/release-notes.md
+            --title "My SMS $VERSIONE" --notes-file .github/release-notes.md

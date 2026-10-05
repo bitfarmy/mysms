@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="assets/banner.svg" alt="SMS.EXE - I miei SMS" width="800">
+<img src="assets/banner.svg" alt="SMS.EXE - My SMS" width="800">
 
-# 💾 I miei SMS
+# 💾 My SMS
 
 **App SMS personale per Android — senza internet, senza librerie, senza tracker.**
 
@@ -22,13 +22,13 @@
 
 ## 🖥️ Cos'è
 
-`I miei SMS` sostituisce l'app messaggi di sistema con una scritta da zero in Kotlin, con **solo le API di Android**.
+`My SMS` sostituisce l'app messaggi di sistema con una scritta da zero in Kotlin, con **solo le API di Android**.
 Non ha il permesso `INTERNET`: l'app **non può** mandare nulla fuori dal telefono.
 
 ```
-┌─ Informazioni su I miei SMS ──────────────── _ □ X ┐
+┌─ Informazioni su My SMS ──────────────────── _ □ X ┐
 │                                                    │
-│   💬  I miei SMS   versione 3.6.6                  │
+│   💬  My SMS   versione 3.6.6                       │
 │                                                    │
 │   Memoria libera ........ tutta                    │
 │   Cloud ................. nessuno                  │

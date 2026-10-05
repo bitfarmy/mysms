@@ -1,4 +1,4 @@
-## I miei SMS 3.6.6 / My SMS 3.6.6
+## My SMS 3.6.6
 
 **IT** — Consegna dei messaggi, codici di verifica con «Copia codice», notifiche con Rispondi/Letto, ricerca, elimina e blocca (numeri bloccati salvati solo come impronta), notifiche private sul blocco schermo, APK release firmato. Nessun MMS.
 Se hai una versione precedente, **disinstallala prima** (la chiave di firma è cambiata). Gli SMS restano.

@@ -124,6 +124,7 @@ class MainActivity : Activity() {
         radice.addView(nuovo, parametriNuovo)
 
         setContentView(radice)
+        Bordi.applica(radice)
 
         if (!Permessi.tuttiConcessi(this)) Permessi.richiedi(this)
     }
@@ -324,7 +325,13 @@ class MainActivity : Activity() {
     // ---------- App SMS predefinita ----------
 
     private fun aggiornaBannerPredefinita() {
-        val predefinita = Telephony.Sms.getDefaultSmsPackage(this) == packageName
+        // Dalle versioni recenti di Android il valore "sms_default_application" può essere vuoto
+        // anche quando siamo l'app predefinita: la fonte affidabile è il ruolo SMS.
+        val predefinita = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            getSystemService(RoleManager::class.java)?.isRoleHeld(RoleManager.ROLE_SMS) == true
+        } else {
+            Telephony.Sms.getDefaultSmsPackage(this) == packageName
+        }
         if (predefinita) {
             bannerPredefinita.visibility = View.GONE
         } else {
