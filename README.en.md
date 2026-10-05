@@ -11,6 +11,7 @@
 ![version](https://img.shields.io/badge/version-3.6.6-000080?style=flat-square&labelColor=c0c0c0)
 ![android](https://img.shields.io/badge/Android-8.0%2B-008080?style=flat-square&labelColor=c0c0c0)
 ![kotlin](https://img.shields.io/badge/Kotlin-zero%20libraries-800080?style=flat-square&labelColor=c0c0c0)
+![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial-808080?style=flat-square&labelColor=c0c0c0)
 ![internet](https://img.shields.io/badge/INTERNET%20permission-no-c00000?style=flat-square&labelColor=c0c0c0)
 
 <img src="assets/progress.svg" alt="Privacy check" width="640">
@@ -112,6 +113,19 @@ To publish a version just push a tag: `git tag v3.6.6 && git push origin v3.6.6`
 
 The tests (`app/src/test`) cover verification-code detection and number matching. JUnit is used **only** for tests and does not end up in the APK.
 The parts that talk to the phone (sending, receiving, notifications) have no automated tests and must be tried on a device.
+
+## 📜 License
+
+[**PolyForm Noncommercial 1.0.0**](LICENSE) — source-available, **not** open source in the OSI sense.
+
+| | |
+|---|---|
+| ✅ | Use it, every day if you like, for personal use, study, research, hobby |
+| ✅ | **Fork it**, modify it and share your versions |
+| ✅ | Distribute copies and derivatives to anyone, as long as it is free of charge and under this license (and the `NOTICE` file) |
+| ❌ | **Sell it or use it commercially** — the app or any derivative of it |
+
+Commercial use needs an agreement with the author. The legal text is the `LICENSE` file; this table is only a summary.
 
 ## 🗺️ Roadmap
 
