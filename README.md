@@ -8,7 +8,7 @@
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
-![versione](https://img.shields.io/badge/versione-3.6.6-000080?style=flat-square&labelColor=c0c0c0)
+![versione](https://img.shields.io/badge/versione-3.6.7-000080?style=flat-square&labelColor=c0c0c0)
 ![android](https://img.shields.io/badge/Android-8.0%2B-008080?style=flat-square&labelColor=c0c0c0)
 ![kotlin](https://img.shields.io/badge/Kotlin-zero%20librerie-800080?style=flat-square&labelColor=c0c0c0)
 ![licenza](https://img.shields.io/badge/licenza-PolyForm%20Noncommercial-808080?style=flat-square&labelColor=c0c0c0)
@@ -28,7 +28,7 @@ Non ha il permesso `INTERNET`: l'app **non può** mandare nulla fuori dal telefo
 ```
 ┌─ Informazioni su My SMS ──────────────────── _ □ X ┐
 │                                                    │
-│   💬  My SMS   versione 3.6.6                       │
+│   💬  My SMS   versione 3.6.7                       │
 │                                                    │
 │   Memoria libera ........ tutta                    │
 │   Cloud ................. nessuno                  │
@@ -95,7 +95,7 @@ Con GitHub Actions la compilazione parte a ogni push. Per firmare con la **tua**
 | `FIRMA_ALIAS` | l'alias della chiave |
 
 Senza secret la build usa la chiave di debug standard di Android.
-Per pubblicare una versione basta un tag: `git tag v3.6.6 && git push origin v3.6.6` — Actions compila e crea la release con l'APK.
+Per pubblicare una versione basta un tag: `git tag v3.6.7 && git push origin v3.6.7` — Actions compila e crea la release con l'APK.
 
 ## 🗂️ Dove mettere le mani
 

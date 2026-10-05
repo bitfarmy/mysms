@@ -8,7 +8,7 @@
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
-![version](https://img.shields.io/badge/version-3.6.6-000080?style=flat-square&labelColor=c0c0c0)
+![version](https://img.shields.io/badge/version-3.6.7-000080?style=flat-square&labelColor=c0c0c0)
 ![android](https://img.shields.io/badge/Android-8.0%2B-008080?style=flat-square&labelColor=c0c0c0)
 ![kotlin](https://img.shields.io/badge/Kotlin-zero%20libraries-800080?style=flat-square&labelColor=c0c0c0)
 ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial-808080?style=flat-square&labelColor=c0c0c0)
@@ -28,7 +28,7 @@ It does not have the `INTERNET` permission: the app **cannot** send anything out
 ```
 ┌─ About My SMS ────────────────────────────── _ □ X ┐
 │                                                    │
-│   💬  My SMS   version 3.6.6                       │
+│   💬  My SMS   version 3.6.7                       │
 │                                                    │
 │   Free memory ........... all of it                │
 │   Cloud ................. none                     │
@@ -95,7 +95,7 @@ With GitHub Actions the build runs on every push. To sign with **your own** key 
 | `FIRMA_ALIAS` | the key alias |
 
 Without secrets the build falls back to Android's standard debug key.
-To publish a version just push a tag: `git tag v3.6.6 && git push origin v3.6.6` — Actions builds and creates the release with the APK.
+To publish a version just push a tag: `git tag v3.6.7 && git push origin v3.6.7` — Actions builds and creates the release with the APK.
 
 ## 🗂️ Where to look
 
