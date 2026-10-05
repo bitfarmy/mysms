@@ -1,46 +1,126 @@
-# I miei SMS
+<div align="center">
 
-App SMS personale in Kotlin, senza librerie esterne. Nessun MMS in questa versione: solo testo.
+<img src="assets/banner.svg" alt="SMS.EXE - I miei SMS" width="800">
 
-## Cosa fa (versione 0.1)
+# 💾 I miei SMS
 
-- Elenco conversazioni con nome del contatto (se in rubrica), anteprima e orario.
-- Apertura di una conversazione con invio, ricezione in tempo reale e stato del messaggio (in corso / inviato / non riuscito, con possibilità di ritentare toccandolo).
-- Messaggi lunghi divisi automaticamente in più SMS.
-- Notifica per ogni messaggio ricevuto, che apre direttamente la conversazione.
-- Avviso (senza contenuto) quando arriva un MMS, dato che questa versione non lo sa mostrare.
-- Pulsante per diventare l'app SMS predefinita direttamente dalla schermata principale.
-- Rispetta il requisito Android di "rispondi con un messaggio" durante una chiamata in arrivo (componente tecnico obbligatorio per essere selezionabili come app predefinita, richiesto dal sistema — non è pensato per essere usato direttamente).
+**App SMS personale per Android — senza internet, senza librerie, senza tracker.**
 
-## Un avviso importante
+🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
-Gli SMS sono spesso il canale dei codici di verifica (banche, 2FA). Finché non hai provato questa app per qualche giorno e ti fidi del suo funzionamento, ti consiglio di **disattivare** l'app SMS di sistema (es. Google Messaggi) invece di disinstallarla, così puoi tornare indietro in un attimo se serve:
+![versione](https://img.shields.io/badge/versione-3.6.6-000080?style=flat-square&labelColor=c0c0c0)
+![android](https://img.shields.io/badge/Android-8.0%2B-008080?style=flat-square&labelColor=c0c0c0)
+![kotlin](https://img.shields.io/badge/Kotlin-zero%20librerie-800080?style=flat-square&labelColor=c0c0c0)
+![internet](https://img.shields.io/badge/permesso%20INTERNET-no-c00000?style=flat-square&labelColor=c0c0c0)
+
+<img src="assets/progress.svg" alt="Verifica privacy" width="640">
+
+</div>
+
+---
+
+## 🖥️ Cos'è
+
+`I miei SMS` sostituisce l'app messaggi di sistema con una scritta da zero in Kotlin, con **solo le API di Android**.
+Non ha il permesso `INTERNET`: l'app **non può** mandare nulla fuori dal telefono.
+
 ```
-adb shell pm disable-user --user 0 com.google.android.apps.messaging
+┌─ Informazioni su I miei SMS ──────────────── _ □ X ┐
+│                                                    │
+│   💬  I miei SMS   versione 3.6.6                  │
+│                                                    │
+│   Memoria libera ........ tutta                    │
+│   Cloud ................. nessuno                  │
+│   Tracker ............... 0                        │
+│                                                    │
+│              [   OK   ]   [ Annulla ]              │
+└────────────────────────────────────────────────────┘
 ```
-(verifica il nome del pacchetto della tua app messaggi con `adb shell pm list packages | grep -i messag`)
 
-## Installarla
+## ✨ Cosa fa
 
-Stessa procedura del progetto della tastiera:
-1. Apri la cartella in Android Studio e premi Run, **oppure**
-2. Carica tutto (compresa `.github`) su un repository GitHub privato: la compilazione parte da sola in Actions e trovi l'APK da scaricare in fondo alla pagina dell'esecuzione, sotto "Artifacts".
+| | Funzione |
+|---|---|
+| 💬 | Elenco conversazioni con nome del contatto, anteprima e orario |
+| 📨 | Invio e ricezione in tempo reale; messaggi lunghi divisi in automatico |
+| ✅ | Stato di ogni messaggio: in corso, inviato, **consegnato**, non riuscito (tocca per riprovare, senza duplicati) |
+| 🔐 | **Codici di verifica** riconosciuti: pulsante «Copia codice» nella notifica |
+| 🔔 | Notifiche con **Rispondi** e **Letto** direttamente dalla notifica |
+| 🔍 | Ricerca per testo, nome o numero |
+| 🗑️ | Elimina conversazioni e singoli messaggi · copia il testo con un tocco lungo |
+| 🚫 | Blocca numeri (vedi «Privacy» qui sotto) |
+| 🎨 | Temi colore, anche in stile vintage con bordi |
+| ⚡ | Elenco veloce e caricamento a pagine (200 messaggi alla volta) |
+| 🧹 | Scarta gli SMS doppi dell'operatore e segna come falliti gli invii rimasti a metà |
 
-Dopo l'installazione, apri l'app e tocca il banner in alto per impostarla come app SMS predefinita.
+> 📵 **Gli MMS non sono supportati.** Quando ne arriva uno ricevi un avviso (senza contenuto).
 
-## Dove mettere le mani
+## 🔒 Privacy
+
+- **Nessun accesso a internet**: il permesso `INTERNET` non c'è nel manifest.
+- **Nessun backup** dei dati (`allowBackup="false"`).
+- **Notifiche private sul blocco schermo**: mittente, testo e codici si vedono solo dopo lo sblocco.
+- **Codice copiato marcato come sensibile** negli appunti (Android 13+).
+- **Numeri bloccati non salvati**: resta solo un'impronta (PBKDF2-SHA256, sale casuale). L'elenco «Numeri bloccati» si ricostruisce dalle conversazioni presenti negli SMS. L'impronta rallenta chi volesse risalire ai numeri, ma non è una protezione assoluta.
+- **APK release** (non debuggable), firmato con una chiave che non sta nel repository.
+- Gli SMS restano nell'archivio di sistema di Android: l'app non li copia altrove.
+
+## 📥 Installazione
+
+1. Vai in [**Releases**](../../releases) e scarica l'ultimo `mysms-*.apk`.
+2. Se hai una versione **precedente alla 3.6.6**, disinstallala prima (la chiave di firma è cambiata). Gli SMS restano, perché stanno nel sistema.
+3. Apri l'APK e consenti l'installazione da fonti sconosciute.
+4. Avvia l'app, concedi i permessi e tocca il banner in alto per impostarla come **app SMS predefinita**.
+
+> ⚠️ Molte banche e servizi mandano i codici di accesso via SMS. Prima di fidarti dell'app, **disattiva** (non disinstallare) l'app messaggi di sistema, così puoi tornare indietro in un attimo:
+> ```
+> adb shell pm list packages | grep -i messag
+> adb shell pm disable-user --user 0 <nome.del.pacchetto>
+> ```
+
+## 🛠️ Compilare
+
+```bash
+# In locale: serve Android Studio (JDK 17) oppure Gradle 8.11
+gradle testDebugUnitTest assembleRelease
+```
+
+Con GitHub Actions la compilazione parte a ogni push. Per firmare con la **tua** chiave aggiungi tre *secret* al repository:
+
+| Secret | Contenuto |
+|---|---|
+| `FIRMA_BASE64` | il keystore `.jks` in base64 (`base64 -w0 firma.jks`) |
+| `FIRMA_PASSWORD` | la password del keystore e della chiave |
+| `FIRMA_ALIAS` | l'alias della chiave |
+
+Senza secret la build usa la chiave di debug standard di Android.
+Per pubblicare una versione basta un tag: `git tag v3.6.6 && git push origin v3.6.6` — Actions compila e crea la release con l'APK.
+
+## 🗂️ Dove mettere le mani
 
 | Cosa vuoi cambiare | File |
 |---|---|
-| Come appare l'elenco conversazioni | `MainActivity.kt` |
-| Come appare una conversazione (colori bolle, ecc.) | `ConversazioneActivity.kt` |
+| Elenco conversazioni, menu, ricerca | `MainActivity.kt` |
+| Una conversazione (bolle, azioni sui messaggi) | `ConversazioneActivity.kt` |
 | Cosa succede quando arriva un SMS | `SmsDeliverReceiver.kt` |
-| Notifiche | `Notifiche.kt` |
-| Come vengono inviati i messaggi | `InvioSms.kt` |
-| Permessi richiesti | `Permessi.kt` |
+| Notifiche e loro pulsanti | `Notifiche.kt`, `AzioniNotificaReceiver.kt` |
+| Invio, stato e consegna | `InvioSms.kt`, `StatoInvioReceiver.kt`, `StatoConsegnaReceiver.kt` |
+| Riconoscimento codici / confronto numeri (con test) | `Codici.kt`, `Numeri.kt` |
+| Temi e impostazioni, blocco numeri | `Temi.kt` |
 
-## Possibili sviluppi futuri
+## 🧪 Test
 
-- Supporto MMS (foto/video) — la parte più complessa, richiede parsing PDU e impostazioni APN dell'operatore.
-- Tema colori personalizzabile, come nella tastiera.
-- Eliminazione conversazioni, ricerca, blocco numeri.
+I test (`app/src/test`) coprono il riconoscimento dei codici di verifica e il confronto dei numeri. JUnit è usato **solo** per i test e non finisce nell'APK.
+Le parti che parlano con il telefono (invio, ricezione, notifiche) non sono coperte da test automatici e vanno provate su un dispositivo.
+
+## 🗺️ Possibili sviluppi
+
+- Supporto MMS (foto/video): la parte più complessa, richiede parsing PDU e impostazioni APN.
+- Passare a `RecyclerView` (aggiungerebbe una libreria).
+- Opzione per mostrare il testo anche sul blocco schermo.
+
+<div align="center">
+
+<sub>💾 Fatto per essere piccolo, onesto e solo tuo.</sub>
+
+</div>

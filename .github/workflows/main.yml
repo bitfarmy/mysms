@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -40,3 +43,13 @@ jobs:
         with:
           name: i-miei-sms
           path: app/build/outputs/apk/release/app-release.apk
+
+      - name: Pubblica la release (solo per i tag v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSIONE="${GITHUB_REF_NAME#v}"
+          cp app/build/outputs/apk/release/app-release.apk "mysms-${VERSIONE}.apk"
+          gh release create "$GITHUB_REF_NAME" "mysms-${VERSIONE}.apk" \
+            --title "I miei SMS $VERSIONE" --notes-file .github/release-notes.md
