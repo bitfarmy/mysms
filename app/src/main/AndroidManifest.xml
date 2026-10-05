@@ -84,6 +84,10 @@
 
         <!-- Interna: riceve la conferma di invio/mancato invio di un SMS. Non serve ad altre app. -->
         <receiver android:name=".StatoInvioReceiver" android:exported="false" />
+        <receiver android:name=".StatoConsegnaReceiver" android:exported="false" />
+
+        <!-- Interna: i pulsanti nelle notifiche (copia codice, rispondi, letto). -->
+        <receiver android:name=".AzioniNotificaReceiver" android:exported="false" />
 
     </application>
 </manifest>

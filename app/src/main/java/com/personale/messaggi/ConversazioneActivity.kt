@@ -1,6 +1,9 @@
 package com.personale.messaggi
 
 import android.app.Activity
+import android.app.AlertDialog
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.database.ContentObserver
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -10,6 +13,8 @@ import android.os.Looper
 import android.provider.Telephony
 import android.telephony.PhoneNumberUtils
 import android.view.Gravity
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
@@ -17,6 +22,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.TextView
+import android.widget.Toast
 import java.util.Locale
 
 class ConversazioneActivity : Activity() {
@@ -33,6 +39,9 @@ class ConversazioneActivity : Activity() {
     private lateinit var adapter: AdapterMessaggi
     private lateinit var campoTesto: EditText
     private var messaggi: List<Messaggio> = emptyList()
+    private var limite = Messaggi.PAGINA
+    private var caricandoPrecedenti = false
+    private lateinit var caricaAltri: TextView
 
     private val gestore = Handler(Looper.getMainLooper())
     private val osservatore = object : ContentObserver(gestore) {
@@ -53,8 +62,23 @@ class ConversazioneActivity : Activity() {
 
         // I messaggi vivono in un pannello "finestra" bordato, come nella schermata principale.
         elencoView = ListView(this)
-        elencoView.transcriptMode = ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL
         elencoView.divider = null
+
+        // In cima alla lista: appare solo se ci sono messaggi più vecchi di quelli caricati.
+        caricaAltri = TextView(this)
+        caricaAltri.text = "Carica messaggi precedenti"
+        caricaAltri.gravity = Gravity.CENTER
+        caricaAltri.setTextColor(tema.accento)
+        caricaAltri.setPadding(dp(12), dp(12), dp(12), dp(12))
+        caricaAltri.visibility = View.GONE
+        caricaAltri.setOnClickListener {
+            limite += Messaggi.PAGINA
+            caricandoPrecedenti = true
+            ricarica()
+        }
+        val intestazione = LinearLayout(this)
+        intestazione.addView(caricaAltri, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        elencoView.addHeaderView(intestazione, null, false)
         adapter = AdapterMessaggi()
         elencoView.adapter = adapter
 
@@ -92,7 +116,18 @@ class ConversazioneActivity : Activity() {
         parametriInvia.setMargins(dp(6), 0, 0, 0)
         rigaInvio.addView(invia, parametriInvia)
 
-        radice.addView(rigaInvio, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        if (Numeri.alfanumerico(numero)) {
+            // Mittenti come "POSTE" o "AMAZON" non accettano risposte.
+            val avviso = TextView(this)
+            avviso.text = "Non è possibile rispondere a questo mittente."
+            avviso.setTextColor(tema.testoSecondario)
+            avviso.gravity = Gravity.CENTER
+            avviso.setPadding(dp(8), dp(14), dp(8), dp(14))
+            avviso.setBackgroundColor(tema.superficie)
+            radice.addView(avviso, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        } else {
+            radice.addView(rigaInvio, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        }
         setContentView(radice)
     }
 
@@ -111,12 +146,72 @@ class ConversazioneActivity : Activity() {
         if (threadId <= 0) {
             threadId = Messaggi.threadIdPerNumero(this, numero) ?: -1
         }
+        val prima = messaggi.size
         if (threadId > 0) {
-            messaggi = Messaggi.diConversazione(this, threadId)
+            messaggi = Messaggi.diConversazione(this, threadId, limite)
             Messaggi.segnaComeLette(this, threadId)
         }
+        caricaAltri.visibility = if (messaggi.size >= limite) View.VISIBLE else View.GONE
         adapter.notifyDataSetChanged()
-        if (messaggi.isNotEmpty()) elencoView.setSelection(messaggi.size - 1)
+        if (caricandoPrecedenti) {
+            // Resta nel punto in cui eravamo: i messaggi nuovi in cima spostano tutto in basso (+1 per l'intestazione).
+            elencoView.setSelection(messaggi.size - prima + 1)
+            caricandoPrecedenti = false
+        } else if (messaggi.isNotEmpty()) {
+            elencoView.setSelection(messaggi.size) // ultima riga (l'intestazione occupa la posizione 0)
+        }
+    }
+
+    // ---------- Menu ----------
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menu.add(0, 1, 0, "Blocca numero")
+        menu.add(0, 2, 1, "Elimina conversazione")
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            1 -> AlertDialog.Builder(this)
+                .setTitle("Bloccare questo numero?")
+                .setMessage("I suoi messaggi verranno conservati ma senza notifiche, e la conversazione sparirà dall'elenco. Puoi sbloccarlo da «Numeri bloccati».")
+                .setPositiveButton("Blocca") { _, _ ->
+                    val prefs = Preferenze(this)
+                    prefs.bloccati = prefs.bloccati + numero
+                    finish()
+                }
+                .setNegativeButton("Annulla", null)
+                .show()
+            2 -> AlertDialog.Builder(this)
+                .setTitle("Eliminare la conversazione?")
+                .setMessage("Non si può annullare.")
+                .setPositiveButton("Elimina") { _, _ ->
+                    if (threadId > 0 && Messaggi.eliminaConversazione(this, threadId)) {
+                        finish()
+                    } else {
+                        Toast.makeText(this, "Per eliminare l'app deve essere quella predefinita per gli SMS.", Toast.LENGTH_LONG).show()
+                    }
+                }
+                .setNegativeButton("Annulla", null)
+                .show()
+            else -> return super.onOptionsItemSelected(item)
+        }
+        return true
+    }
+
+    private fun mostraAzioniMessaggio(m: Messaggio) {
+        AlertDialog.Builder(this)
+            .setItems(arrayOf("Copia testo", "Elimina messaggio")) { _, quale ->
+                if (quale == 0) {
+                    getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("Messaggio", m.corpo))
+                    Toast.makeText(this, "Copiato", Toast.LENGTH_SHORT).show()
+                } else if (Messaggi.eliminaMessaggio(this, m.id)) {
+                    ricarica()
+                } else {
+                    Toast.makeText(this, "Per eliminare l'app deve essere quella predefinita per gli SMS.", Toast.LENGTH_LONG).show()
+                }
+            }
+            .show()
     }
 
     private fun inviaMessaggio() {
@@ -184,6 +279,19 @@ class ConversazioneActivity : Activity() {
                         ricarica()
                     }
                 }
+            }
+
+            // "Consegnato" solo sull'ultimo messaggio inviato, per non riempire la schermata.
+            if (m.inviatoDaMe && m.consegnato && m === messaggi.lastOrNull { it.inviatoDaMe }) {
+                val consegnato = TextView(this@ConversazioneActivity)
+                consegnato.text = "Consegnato"
+                consegnato.textSize = 11f
+                consegnato.setTextColor(Color.parseColor("#D6E4FB"))
+                bolla.addView(consegnato)
+            }
+            bolla.setOnLongClickListener {
+                mostraAzioniMessaggio(m)
+                true
             }
 
             val parametriBolla = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)

@@ -30,6 +30,9 @@ jobs:
             echo "FIRMA_ALIAS=${{ secrets.FIRMA_ALIAS }}" >> "$GITHUB_ENV"
           fi
 
+      - name: Esegui i test
+        run: gradle testDebugUnitTest
+
       - name: Compila l'app SMS
         run: gradle assembleDebug
 

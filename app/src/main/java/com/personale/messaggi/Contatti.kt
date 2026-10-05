@@ -12,6 +12,7 @@ object Contatti {
 
     /** Nome e foto del contatto associato a un numero, oppure null se non è in rubrica. */
     fun cerca(context: Context, numero: String): Contatto? {
+        if (Numeri.alfanumerico(numero)) return null
         cache[numero]?.let { return it.orElse(null) } // vuoto = già cercato e non trovato
 
         val uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(numero))
