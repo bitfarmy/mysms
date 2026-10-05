@@ -129,6 +129,7 @@ class ConversazioneActivity : Activity() {
             radice.addView(rigaInvio, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         }
         setContentView(radice)
+        Bordi.applica(this, radice)
     }
 
     override fun onResume() {

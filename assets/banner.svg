@@ -20,7 +20,7 @@
 
   <!-- barra del titolo -->
   <rect x="14" y="14" width="772" height="28" fill="url(#titolo)"/>
-  <text x="26" y="34" fill="#fff" font-size="15" font-weight="bold">SMS.EXE - I miei SMS / My SMS</text>
+  <text x="26" y="34" fill="#fff" font-size="15" font-weight="bold">SMS.EXE - My SMS</text>
   <g>
     <rect x="696" y="18" width="24" height="20" fill="#c0c0c0" stroke="#404040"/><text x="702" y="33" font-size="14" font-weight="bold">_</text>
     <rect x="722" y="18" width="24" height="20" fill="#c0c0c0" stroke="#404040"/><rect x="729" y="23" width="10" height="9" fill="none" stroke="#000" stroke-width="2"/>

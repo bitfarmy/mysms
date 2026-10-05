@@ -124,6 +124,7 @@ class MainActivity : Activity() {
         radice.addView(nuovo, parametriNuovo)
 
         setContentView(radice)
+        Bordi.applica(this, radice)
 
         if (!Permessi.tuttiConcessi(this)) Permessi.richiedi(this)
     }
