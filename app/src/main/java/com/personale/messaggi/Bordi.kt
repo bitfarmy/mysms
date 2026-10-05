@@ -1,19 +1,17 @@
 package com.personale.messaggi
 
-import android.app.Activity
 import android.os.Build
-import android.util.TypedValue
 import android.view.View
 import android.view.WindowInsets
 
 /**
  * Da Android 15 con targetSdk 35 le app si disegnano sotto barra di stato, barra del titolo e barra dei gesti:
- * senza questo, il banner e la prima riga della lista finiscono nascosti. Qui li spingiamo dentro l'area visibile.
+ * senza questo, il banner e la prima riga della lista finiscono nascosti. Qui li spingiamo dentro l'area visibile
+ * (i margini di sistema comprendono già l'altezza della barra del titolo).
  */
 object Bordi {
 
-    fun applica(activity: Activity, radice: View) {
-        val barraTitolo = if (Build.VERSION.SDK_INT >= 35) altezzaBarraTitolo(activity) else 0
+    fun applica(radice: View) {
         radice.setOnApplyWindowInsetsListener { v, insets ->
             val sinistra: Int
             val alto: Int
@@ -30,18 +28,9 @@ object Bordi {
                     destra = insets.systemWindowInsetRight; basso = insets.systemWindowInsetBottom
                 }
             }
-            v.setPadding(sinistra, alto + barraTitolo, destra, basso)
+            v.setPadding(sinistra, alto, destra, basso)
             WindowInsets.CONSUMED
         }
         radice.requestApplyInsets()
-    }
-
-    private fun altezzaBarraTitolo(activity: Activity): Int {
-        val v = TypedValue()
-        return if (activity.theme.resolveAttribute(android.R.attr.actionBarSize, v, true)) {
-            TypedValue.complexToDimensionPixelSize(v.data, activity.resources.displayMetrics)
-        } else {
-            0
-        }
     }
 }
