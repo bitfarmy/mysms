@@ -43,6 +43,14 @@ object Notifiche {
             .setContentIntent(pending)
             .setGroup(GRUPPO)
             .setAutoCancel(true)
+            // Sul blocco schermo non compaiono mittente, testo né codici: solo un avviso generico.
+            .setVisibility(Notification.VISIBILITY_PRIVATE)
+            .setPublicVersion(
+                Notification.Builder(context, CANALE_MESSAGGI)
+                    .setSmallIcon(android.R.drawable.sym_action_chat)
+                    .setContentTitle("Nuovo messaggio")
+                    .build(),
+            )
 
         fun azione(codiceAzione: String, richiesta: Int, mutabile: Boolean = false): PendingIntent {
             val intent = Intent(context, AzioniNotificaReceiver::class.java).apply {
@@ -80,6 +88,7 @@ object Notifiche {
             .setSmallIcon(android.R.drawable.sym_action_chat)
             .setContentTitle("Messaggio multimediale ricevuto")
             .setContentText("Questa versione dell'app non mostra ancora foto e video negli MMS.")
+            .setVisibility(Notification.VISIBILITY_PRIVATE)
             .setAutoCancel(true)
             .build()
         posta(context, prossimoId++, notifica)

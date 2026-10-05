@@ -36,7 +36,8 @@ android {
         }
         release {
             isMinifyEnabled = false
-            signingConfigs.findByName("personale")?.let { signingConfig = it }
+            // Senza la chiave personale (build locale) si usa quella di debug, altrimenti l'APK non sarebbe installabile.
+            signingConfig = signingConfigs.findByName("personale") ?: signingConfigs.getByName("debug")
         }
     }
 
