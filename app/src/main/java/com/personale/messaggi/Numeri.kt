@@ -8,14 +8,19 @@ object Numeri {
 
     fun cifre(numero: String): String = numero.filter { it.isDigit() }
 
+    /**
+     * Forma canonica di un mittente: due scritture dello stesso numero (+39333… e 333…) danno la stessa chiave.
+     * Numeri brevi (servizi): tutte le cifre. Altrimenti le ultime 9. Mittenti con nome: minuscolo.
+     */
+    fun chiave(numero: String): String {
+        if (alfanumerico(numero)) return "a:" + numero.trim().lowercase()
+        val c = cifre(numero)
+        return if (c.length < 9) c else c.takeLast(9)
+    }
+
     /** Stesso mittente anche se scritto con o senza prefisso internazionale (+39333… = 333…). */
     fun uguali(a: String, b: String): Boolean {
-        if (alfanumerico(a) || alfanumerico(b)) return a.trim().equals(b.trim(), ignoreCase = true)
-        val ca = cifre(a)
-        val cb = cifre(b)
-        if (ca.isEmpty() || cb.isEmpty()) return false
-        // Numeri brevi (servizi): confronto esatto. Altrimenti contano le ultime 9 cifre.
-        if (minOf(ca.length, cb.length) < 9) return ca == cb
-        return ca.takeLast(9) == cb.takeLast(9)
+        val ka = chiave(a)
+        return ka.isNotEmpty() && ka == chiave(b)
     }
 }

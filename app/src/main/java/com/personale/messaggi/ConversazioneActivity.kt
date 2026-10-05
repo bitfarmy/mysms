@@ -174,10 +174,9 @@ class ConversazioneActivity : Activity() {
         when (item.itemId) {
             1 -> AlertDialog.Builder(this)
                 .setTitle("Bloccare questo numero?")
-                .setMessage("I suoi messaggi verranno conservati ma senza notifiche, e la conversazione sparirà dall'elenco. Puoi sbloccarlo da «Numeri bloccati».")
+                .setMessage("I suoi messaggi verranno conservati ma senza notifiche, e la conversazione sparirà dall'elenco. L'app non salva il numero, solo un'impronta. Puoi sbloccarlo da «Numeri bloccati».")
                 .setPositiveButton("Blocca") { _, _ ->
-                    val prefs = Preferenze(this)
-                    prefs.bloccati = prefs.bloccati + numero
+                    Preferenze(this).blocca(numero)
                     finish()
                 }
                 .setNegativeButton("Annulla", null)
