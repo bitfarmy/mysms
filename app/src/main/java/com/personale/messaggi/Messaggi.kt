@@ -57,6 +57,13 @@ object Messaggi {
 
     /** Il thread_id di un numero, cercandolo tra i messaggi esistenti (utile dopo il primo invio). */
     fun threadIdPerNumero(context: Context, numero: String): Long? {
+        // Il sistema sa che +39333… e 333… sono lo stesso numero: la corrispondenza esatta no.
+        try {
+            val id = Telephony.Threads.getOrCreateThreadId(context, numero)
+            if (id > 0) return id
+        } catch (e: Exception) {
+            // Ripiego sulla ricerca per indirizzo qui sotto.
+        }
         context.contentResolver.query(
             Telephony.Sms.CONTENT_URI, arrayOf(Telephony.Sms.THREAD_ID),
             "${Telephony.Sms.ADDRESS} = ?", arrayOf(numero), "${Telephony.Sms.DATE} DESC",

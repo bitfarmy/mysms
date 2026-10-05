@@ -10,27 +10,32 @@ android {
     defaultConfig {
         applicationId = "com.personale.messaggi"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "0.1"
     }
 
-    signingConfigs {
-        create("personale") {
-            storeFile = rootProject.file("firma/messaggi-personali.jks")
-            storePassword = "messaggi123"
-            keyAlias = "messaggi"
-            keyPassword = "messaggi123"
+    // La chiave di firma non sta nel repository (è pubblico): arriva da variabili d'ambiente
+    // (in GitHub Actions, dai secret). Senza, la build usa la chiave di debug standard di Android.
+    val fileFirma = System.getenv("FIRMA_FILE")
+    if (fileFirma != null) {
+        signingConfigs {
+            create("personale") {
+                storeFile = file(fileFirma)
+                storePassword = System.getenv("FIRMA_PASSWORD")
+                keyAlias = System.getenv("FIRMA_ALIAS")
+                keyPassword = System.getenv("FIRMA_PASSWORD")
+            }
         }
     }
 
     buildTypes {
         debug {
-            signingConfig = signingConfigs.getByName("personale")
+            signingConfigs.findByName("personale")?.let { signingConfig = it }
         }
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("personale")
+            signingConfigs.findByName("personale")?.let { signingConfig = it }
         }
     }
 

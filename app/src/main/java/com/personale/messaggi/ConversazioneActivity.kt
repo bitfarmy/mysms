@@ -180,7 +180,7 @@ class ConversazioneActivity : Activity() {
                 bolla.addView(stato)
                 if (m.stato == StatoMessaggio.FALLITO) {
                     bolla.setOnClickListener {
-                        InvioSms.invia(this@ConversazioneActivity, numero, m.corpo)
+                        InvioSms.riprova(this@ConversazioneActivity, m.id, numero, m.corpo)
                         ricarica()
                     }
                 }

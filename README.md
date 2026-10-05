@@ -16,9 +16,9 @@ App SMS personale in Kotlin, senza librerie esterne. Nessun MMS in questa versio
 
 Gli SMS sono spesso il canale dei codici di verifica (banche, 2FA). Finché non hai provato questa app per qualche giorno e ti fidi del suo funzionamento, ti consiglio di **disattivare** l'app SMS di sistema (es. Google Messaggi) invece di disinstallarla, così puoi tornare indietro in un attimo se serve:
 ```
-adb shell pm disable-user --user 0 com.google.android.inputmethod.latin
+adb shell pm disable-user --user 0 com.google.android.apps.messaging
 ```
-(sostituisci con il nome del pacchetto della tua app messaggi, come abbiamo verificato insieme per Gboard)
+(verifica il nome del pacchetto della tua app messaggi con `adb shell pm list packages | grep -i messag`)
 
 ## Installarla
 
