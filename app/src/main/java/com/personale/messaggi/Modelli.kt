@@ -17,6 +17,7 @@ data class Messaggio(
     val data: Long,
     val inviatoDaMe: Boolean,
     val stato: StatoMessaggio,
+    val consegnato: Boolean = false,
 )
 
 data class Contatto(val nome: String, val fotoUri: String?)

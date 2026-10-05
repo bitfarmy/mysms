@@ -4,6 +4,9 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.app.role.RoleManager
 import android.content.Intent
+import android.database.ContentObserver
+import android.os.Handler
+import android.os.Looper
 import android.database.Cursor
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
@@ -34,12 +37,26 @@ class MainActivity : Activity() {
     private lateinit var elencoView: ListView
     private lateinit var bannerPredefinita: TextView
     private lateinit var adapter: AdapterConversazioni
+    private lateinit var bannerFiltro: TextView
     private var conversazioni: List<Conversazione> = emptyList()
+    private var filtro: String? = null
+
+    private val gestore = Handler(Looper.getMainLooper())
+    private val aggiorna = Runnable { if (Permessi.tuttiConcessi(this)) aggiornaElenco() }
+    private val osservatore = object : ContentObserver(gestore) {
+        override fun onChange(selfChange: Boolean) {
+            // Più modifiche ravvicinate (es. un messaggio con più parti) → un solo aggiornamento.
+            gestore.removeCallbacks(aggiorna)
+            gestore.postDelayed(aggiorna, 400)
+        }
+    }
 
     private companion object {
         const val RICHIESTA_RUOLO_SMS = 900
         const val RICHIESTA_CONTATTO = 901
         const val VOCE_MENU_TEMA = 1
+        const val VOCE_MENU_CERCA = 2
+        const val VOCE_MENU_BLOCCATI = 3
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,6 +82,15 @@ class MainActivity : Activity() {
         separatore.setBackgroundColor(tema.divisore)
         radice.addView(separatore, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1)))
 
+        bannerFiltro = TextView(this)
+        bannerFiltro.textSize = 14f
+        bannerFiltro.setPadding(dp(20), dp(10), dp(20), dp(10))
+        bannerFiltro.setBackgroundColor(tema.superficie)
+        bannerFiltro.setTextColor(tema.accento)
+        bannerFiltro.visibility = View.GONE
+        bannerFiltro.setOnClickListener { impostaFiltro(null) }
+        radice.addView(bannerFiltro, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+
         // La lista vive dentro un "pannello finestra" bordato che si stacca dal desktop sottostante.
         elencoView = ListView(this)
         elencoView.divider = ColorDrawable(tema.divisore)
@@ -72,6 +98,10 @@ class MainActivity : Activity() {
         adapter = AdapterConversazioni()
         elencoView.adapter = adapter
         elencoView.setOnItemClickListener { _, _, posizione, _ -> apriConversazione(conversazioni[posizione]) }
+        elencoView.setOnItemLongClickListener { _, _, posizione, _ ->
+            chiediEliminaConversazione(conversazioni[posizione])
+            true
+        }
 
         val pannelloLista = LinearLayout(this)
         pannelloLista.background = pannelloConBordo(tema.superficie, tema.bordo)
@@ -101,7 +131,16 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         aggiornaBannerPredefinita()
-        if (Permessi.tuttiConcessi(this)) aggiornaElenco()
+        if (Permessi.tuttiConcessi(this)) {
+            aggiornaElenco()
+            contentResolver.registerContentObserver(Telephony.Sms.CONTENT_URI, true, osservatore)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        contentResolver.unregisterContentObserver(osservatore)
+        gestore.removeCallbacks(aggiorna)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -118,16 +157,70 @@ class MainActivity : Activity() {
     // ---------- Menu e temi ----------
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menu.add(0, VOCE_MENU_TEMA, 0, "Tema")
+        menu.add(0, VOCE_MENU_CERCA, 0, "Cerca")
+        menu.add(0, VOCE_MENU_BLOCCATI, 1, "Numeri bloccati")
+        menu.add(0, VOCE_MENU_TEMA, 2, "Tema")
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == VOCE_MENU_TEMA) {
-            mostraSceltaTema()
-            return true
+        when (item.itemId) {
+            VOCE_MENU_TEMA -> mostraSceltaTema()
+            VOCE_MENU_CERCA -> chiediTestoDaCercare()
+            VOCE_MENU_BLOCCATI -> mostraNumeriBloccati()
+            else -> return super.onOptionsItemSelected(item)
         }
-        return super.onOptionsItemSelected(item)
+        return true
+    }
+
+    private fun chiediTestoDaCercare() {
+        val campo = EditText(this)
+        campo.hint = "Testo, nome o numero"
+        campo.setSingleLine()
+        AlertDialog.Builder(this)
+            .setTitle("Cerca")
+            .setView(campo)
+            .setPositiveButton("Cerca") { _, _ -> impostaFiltro(campo.text.toString().trim().ifEmpty { null }) }
+            .setNegativeButton("Annulla", null)
+            .show()
+    }
+
+    private fun impostaFiltro(testo: String?) {
+        filtro = testo
+        bannerFiltro.visibility = if (testo == null) View.GONE else View.VISIBLE
+        bannerFiltro.text = "Risultati per «$testo» — tocca per annullare"
+        aggiornaElenco()
+    }
+
+    private fun mostraNumeriBloccati() {
+        val bloccati = prefs.bloccati.toList()
+        if (bloccati.isEmpty()) {
+            Toast.makeText(this, "Nessun numero bloccato.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Tocca un numero per sbloccarlo")
+            .setItems(bloccati.toTypedArray()) { _, quale ->
+                prefs.bloccati = prefs.bloccati - bloccati[quale]
+                aggiornaElenco()
+            }
+            .setNegativeButton("Chiudi", null)
+            .show()
+    }
+
+    private fun chiediEliminaConversazione(c: Conversazione) {
+        AlertDialog.Builder(this)
+            .setTitle("Eliminare la conversazione?")
+            .setMessage("Con ${c.nome ?: formattaNumero(c.numero)}. Non si può annullare.")
+            .setPositiveButton("Elimina") { _, _ ->
+                if (Messaggi.eliminaConversazione(this, c.threadId)) {
+                    aggiornaElenco()
+                } else {
+                    Toast.makeText(this, "Per eliminare l'app deve essere quella predefinita per gli SMS.", Toast.LENGTH_LONG).show()
+                }
+            }
+            .setNegativeButton("Annulla", null)
+            .show()
     }
 
     private fun mostraSceltaTema() {
@@ -148,8 +241,17 @@ class MainActivity : Activity() {
 
     private fun aggiornaElenco() {
         Contatti.svuotaCache() // la rubrica può essere cambiata dall'ultima volta
+        val testoFiltro = filtro
         Thread {
-            val nuovo = Conversazioni.elenco(this)
+            var nuovo = Conversazioni.elenco(this) { prefs.bloccato(it) }
+            if (testoFiltro != null) {
+                val perTesto = Messaggi.threadConTesto(this, testoFiltro)
+                nuovo = nuovo.filter {
+                    it.threadId in perTesto ||
+                        (it.nome?.contains(testoFiltro, ignoreCase = true) == true) ||
+                        it.numero.contains(testoFiltro, ignoreCase = true)
+                }
+            }
             runOnUiThread {
                 if (isDestroyed) return@runOnUiThread
                 conversazioni = nuovo

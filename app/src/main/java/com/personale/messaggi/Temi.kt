@@ -68,6 +68,12 @@ object Temi {
 class Preferenze(context: Context) {
     private val sp = context.applicationContext.getSharedPreferences("impostazioni", Context.MODE_PRIVATE)
 
+    var bloccati: Set<String>
+        get() = sp.getStringSet("bloccati", emptySet()) ?: emptySet()
+        set(valore) = sp.edit().putStringSet("bloccati", HashSet(valore)).apply()
+
+    fun bloccato(numero: String): Boolean = bloccati.any { Numeri.uguali(it, numero) }
+
     var tema: String
         get() = sp.getString("tema", null) ?: "chiaro"
         set(valore) = sp.edit().putString("tema", valore).apply()

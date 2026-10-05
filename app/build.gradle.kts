@@ -11,8 +11,9 @@ android {
         applicationId = "com.personale.messaggi"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1"
+        // In GitHub Actions cresce a ogni build, così ogni APK si può installare sopra il precedente.
+        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+        versionName = "0.2"
     }
 
     // La chiave di firma non sta nel repository (è pubblico): arriva da variabili d'ambiente
@@ -43,9 +44,16 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
     kotlinOptions {
         jvmTarget = "17"
     }
 }
 
-// Nessuna libreria esterna: solo Android + Kotlin, come nel progetto della tastiera.
+// Nessuna libreria esterna nell'app: solo Android + Kotlin, come nel progetto della tastiera.
+// JUnit serve soltanto ai test e non finisce nell'APK.
+dependencies {
+    testImplementation("junit:junit:4.13.2")
+}
