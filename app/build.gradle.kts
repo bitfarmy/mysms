@@ -13,7 +13,7 @@ android {
         targetSdk = 35
         // In GitHub Actions cresce a ogni build, così ogni APK si può installare sopra il precedente.
         versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
-        versionName = "3.6.6"
+        versionName = "3.6.7"
     }
 
     // La chiave di firma non sta nel repository (è pubblico): arriva da variabili d'ambiente
