@@ -192,20 +192,29 @@ class MainActivity : Activity() {
         aggiornaElenco()
     }
 
+    /**
+     * L'app non conserva i numeri bloccati, solo un'impronta. L'elenco si ricostruisce
+     * dalle conversazioni presenti negli SMS: si vedono quelle il cui mittente risulta bloccato.
+     */
     private fun mostraNumeriBloccati() {
-        val bloccati = prefs.bloccati.toList()
-        if (bloccati.isEmpty()) {
-            Toast.makeText(this, "Nessun numero bloccato.", Toast.LENGTH_SHORT).show()
-            return
-        }
-        AlertDialog.Builder(this)
-            .setTitle("Tocca un numero per sbloccarlo")
-            .setItems(bloccati.toTypedArray()) { _, quale ->
-                prefs.bloccati = prefs.bloccati - bloccati[quale]
-                aggiornaElenco()
+        Thread {
+            val bloccate = Conversazioni.elenco(this).filter { prefs.bloccato(it.numero) }
+            runOnUiThread {
+                if (isDestroyed) return@runOnUiThread
+                if (bloccate.isEmpty()) {
+                    Toast.makeText(this, "Nessuna conversazione bloccata.", Toast.LENGTH_SHORT).show()
+                    return@runOnUiThread
+                }
+                AlertDialog.Builder(this)
+                    .setTitle("Tocca un mittente per sbloccarlo")
+                    .setItems(bloccate.map { it.nome ?: formattaNumero(it.numero) }.toTypedArray()) { _, quale ->
+                        prefs.sblocca(bloccate[quale].numero)
+                        aggiornaElenco()
+                    }
+                    .setNegativeButton("Chiudi", null)
+                    .show()
             }
-            .setNegativeButton("Chiudi", null)
-            .show()
+        }.start()
     }
 
     private fun chiediEliminaConversazione(c: Conversazione) {
